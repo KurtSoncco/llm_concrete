@@ -1,0 +1,82 @@
+# Project Configuration
+
+project:
+  name: "llm_concrete"
+  version: "0.1.0"
+  description: "LLM-based concrete mix design with SFT"
+
+# Data configuration
+data:
+  synthetic_samples: 1030
+  test_size: 0.2
+  random_state: 42
+  feature_columns:
+    - cement
+    - blast_furnace_slag
+    - fly_ash
+    - water
+    - superplasticizer
+    - coarse_aggregate
+    - fine_aggregate
+    - age
+
+# Traditional ML models configuration
+ml_models:
+  random_forest:
+    n_estimators: 100
+    max_depth: 20
+    random_state: 42
+  
+  xgboost:
+    n_estimators: 100
+    max_depth: 6
+    learning_rate: 0.1
+    random_state: 42
+  
+  gradient_boosting:
+    n_estimators: 100
+    max_depth: 5
+    learning_rate: 0.1
+    random_state: 42
+
+# LLM configuration
+llm:
+  model_name: "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+  use_lora: true
+  lora:
+    r: 8
+    alpha: 16
+    dropout: 0.05
+    target_modules:
+      - q_proj
+      - v_proj
+      - k_proj
+      - o_proj
+  
+  training:
+    num_epochs: 3
+    batch_size: 4
+    learning_rate: 0.0002
+    max_length: 512
+    warmup_steps: 50
+    weight_decay: 0.01
+    save_steps: 100
+    logging_steps: 10
+
+# Evaluation configuration
+evaluation:
+  metrics:
+    - rmse
+    - mae
+    - r2
+  
+  visualization:
+    save_plots: true
+    output_format: "png"
+    dpi: 300
+
+# Output paths
+paths:
+  models: "./models"
+  results: "./results"
+  logs: "./logs"
