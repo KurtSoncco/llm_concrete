@@ -41,8 +41,8 @@ data/processed/
 *.csv
 *.parquet
 
-# Models
-models/
+# Models (saved model files, not source code)
+/models/
 checkpoints/
 *.pt
 *.pth
