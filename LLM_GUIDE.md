@@ -139,7 +139,7 @@ llm_trainer = LLMFineTuner(model_name='meta-llama/Llama-2-13b')  # 13B
 ### 1. Start Small
 ```bash
 # Begin with a small model and few epochs
-python scripts/train_llm.py --model-name TinyLlama/TinyLlama-1.1B-Chat-v1.0 --epochs 1
+uv run python scripts/train_llm.py --model-name TinyLlama/TinyLlama-1.1B-Chat-v1.0 --epochs 1
 ```
 
 ### 2. Monitor Training
@@ -153,10 +153,10 @@ Lower loss = better fit to training data
 ### 3. Adjust Batch Size
 ```bash
 # If out of memory, reduce batch size
-python scripts/train_llm.py --batch-size 2
+uv run python scripts/train_llm.py --batch-size 2
 
 # If training is slow, increase batch size
-python scripts/train_llm.py --batch-size 8
+uv run python scripts/train_llm.py --batch-size 8
 ```
 
 ### 4. Hyperparameter Tuning
@@ -273,8 +273,8 @@ model = AutoModelForCausalLM.from_pretrained(
 
 For very large models:
 
-```python
-accelerate launch scripts/train_llm.py
+```bash
+uv run accelerate launch scripts/train_llm.py
 ```
 
 ## Troubleshooting

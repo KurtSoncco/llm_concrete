@@ -147,24 +147,24 @@ Model Performance:
 **Quick Start:**
 ```bash
 # Install dependencies
-pip install pandas numpy scikit-learn xgboost matplotlib
+uv sync --extra ml-only
 
 # Run example
-python scripts/example_simple.py
+uv run python scripts/example_simple.py
 ```
 
 **With LLM:**
 ```bash
 # Install full dependencies
-pip install -r requirements.txt
+uv sync
 
 # Run complete pipeline
-python scripts/run_pipeline.py
+uv run python scripts/run_pipeline.py
 ```
 
 **Custom Data:**
 ```bash
-python scripts/run_pipeline.py --data-path /path/to/data.csv
+uv run python scripts/run_pipeline.py --data-path /path/to/data.csv
 ```
 
 ### Future Enhancements

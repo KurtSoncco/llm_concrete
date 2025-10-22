@@ -56,7 +56,7 @@ class LLMFineTuner:
         # Load model
         self.model = AutoModelForCausalLM.from_pretrained(
             model_name,
-            torch_dtype=torch.float16 if self.device == 'cuda' else torch.float32,
+            dtype=torch.float16 if self.device == 'cuda' else torch.float32,
             device_map='auto' if self.device == 'cuda' else None
         )
         
@@ -83,7 +83,7 @@ class LLMFineTuner:
         Prepare dataset for training.
         
         Args:
-            llm_data: List of dicts with 'instruction', 'input', 'output'
+            llm_data: List of dicts with 'instruction', 'input', 'output', and optionally 'task'
             max_length: Maximum sequence length
             
         Returns:
@@ -163,13 +163,19 @@ class LLMFineTuner:
             logging_steps=logging_steps,
             save_steps=save_steps,
             save_total_limit=2,
-            evaluation_strategy="steps" if eval_dataset else "no",
+            eval_strategy="steps" if eval_dataset else "no",
             eval_steps=save_steps if eval_dataset else None,
-            warmup_steps=50,
+            warmup_steps=100,  # Increased warmup
             weight_decay=0.01,
             fp16=self.device == 'cuda',
             push_to_hub=False,
-            report_to="none"
+            report_to="none",
+            # Additional parameters for better convergence
+            gradient_accumulation_steps=2,  # Effective batch size = batch_size * 2
+            lr_scheduler_type="cosine",    # Cosine learning rate schedule
+            max_grad_norm=1.0,             # Gradient clipping
+            dataloader_num_workers=0,       # Avoid multiprocessing issues
+            remove_unused_columns=False,   # Keep all columns
         )
         
         trainer = Trainer(
@@ -254,7 +260,7 @@ class LLMFineTuner:
         """Load model and tokenizer."""
         self.model = AutoModelForCausalLM.from_pretrained(
             path,
-            torch_dtype=torch.float16 if self.device == 'cuda' else torch.float32,
+            dtype=torch.float16 if self.device == 'cuda' else torch.float32,
             device_map='auto' if self.device == 'cuda' else None
         )
         self.tokenizer = AutoTokenizer.from_pretrained(path)

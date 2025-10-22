@@ -9,20 +9,22 @@ This guide will help you get started with the LLM Concrete Mix Design project qu
 ```bash
 git clone https://github.com/KurtSoncco/llm_concrete.git
 cd llm_concrete
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# Or on Windows: powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
 ### 2. Install Dependencies
 
 #### For ML-only usage (lightweight):
 ```bash
-pip install pandas numpy scikit-learn xgboost matplotlib seaborn
+uv sync --extra ml-only
 ```
 
 #### For full LLM capabilities:
 ```bash
-pip install -r requirements.txt
+uv sync
 ```
 
 ## Quick Examples
@@ -32,7 +34,7 @@ pip install -r requirements.txt
 Run a simple Random Forest model on synthetic data:
 
 ```bash
-python scripts/example_simple.py
+uv run python scripts/example_simple.py
 ```
 
 **Output:**
@@ -45,7 +47,7 @@ python scripts/example_simple.py
 Train and compare 6 different ML models:
 
 ```bash
-python scripts/train_ml_models.py
+uv run python scripts/train_ml_models.py
 ```
 
 **Models trained:**
@@ -61,7 +63,7 @@ python scripts/train_ml_models.py
 Train an LLM for concrete strength prediction:
 
 ```bash
-python scripts/train_llm.py --epochs 3 --batch-size 4
+uv run python scripts/train_llm.py --epochs 3 --batch-size 4
 ```
 
 **Note:** Requires GPU for reasonable training times. CPU training is possible but slow.
@@ -71,12 +73,12 @@ python scripts/train_llm.py --epochs 3 --batch-size 4
 Run the entire pipeline (ML + LLM + Comparison):
 
 ```bash
-python scripts/run_pipeline.py
+uv run python scripts/run_pipeline.py
 ```
 
 **Note:** This takes significant time and resources. Consider using:
 ```bash
-python scripts/run_pipeline.py --skip-llm  # Train only ML models
+uv run python scripts/run_pipeline.py --skip-llm  # Train only ML models
 ```
 
 ## Testing Your Installation
@@ -84,7 +86,7 @@ python scripts/run_pipeline.py --skip-llm  # Train only ML models
 Run the test suite to verify everything is working:
 
 ```bash
-python scripts/test_implementation.py
+uv run python scripts/test_implementation.py
 ```
 
 ## Using Your Own Data
@@ -103,7 +105,7 @@ Prepare a CSV file with these columns:
 Then run:
 
 ```bash
-python scripts/run_pipeline.py --data-path /path/to/your/data.csv
+uv run python scripts/run_pipeline.py --data-path /path/to/your/data.csv
 ```
 
 ## Common Issues
@@ -112,7 +114,7 @@ python scripts/run_pipeline.py --data-path /path/to/your/data.csv
 
 **Solution:** Reduce batch size
 ```bash
-python scripts/train_llm.py --batch-size 2
+uv run python scripts/train_llm.py --batch-size 2
 ```
 
 ### 2. No GPU Available
@@ -126,7 +128,7 @@ python scripts/train_llm.py --batch-size 2
 
 **Solution:** Ensure dependencies are installed:
 ```bash
-pip install -r requirements.txt
+uv sync
 ```
 
 ## Understanding the Results
@@ -177,19 +179,19 @@ Here's a recommended workflow for new users:
 
 ```bash
 # 1. Test installation
-python scripts/test_implementation.py
+uv run python scripts/test_implementation.py
 
 # 2. Run simple example
-python scripts/example_simple.py
+uv run python scripts/example_simple.py
 
 # 3. Train ML models
-python scripts/train_ml_models.py
+uv run python scripts/train_ml_models.py
 
 # 4. (Optional) Train LLM if you have GPU
-python scripts/train_llm.py --epochs 3
+uv run python scripts/train_llm.py --epochs 3
 
 # 5. Compare all models (or skip LLM if not trained)
-python scripts/run_pipeline.py --skip-llm
+uv run python scripts/run_pipeline.py --skip-llm
 ```
 
 Enjoy using the LLM Concrete Mix Design system! 🚀

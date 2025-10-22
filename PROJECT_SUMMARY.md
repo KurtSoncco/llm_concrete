@@ -194,26 +194,26 @@ CodeQL Analysis: 0 vulnerabilities detected ✅
 ### Quick Start
 ```bash
 # Install dependencies
-pip install pandas numpy scikit-learn xgboost matplotlib
+uv sync --extra ml-only
 
 # Run simple example
-python scripts/example_simple.py
+uv run python scripts/example_simple.py
 ```
 
 ### Train All ML Models
 ```bash
-python scripts/train_ml_models.py
+uv run python scripts/train_ml_models.py
 ```
 
 ### Complete Pipeline (with LLM)
 ```bash
-pip install -r requirements.txt
-python scripts/run_pipeline.py
+uv sync
+uv run python scripts/run_pipeline.py
 ```
 
 ### Custom Data
 ```bash
-python scripts/run_pipeline.py --data-path /path/to/data.csv
+uv run python scripts/run_pipeline.py --data-path /path/to/data.csv
 ```
 
 ---

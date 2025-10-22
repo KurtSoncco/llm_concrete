@@ -16,6 +16,8 @@ This project implements an end-to-end pipeline for predicting concrete compressi
 - 🔬 **Synthetic Data Generation**: Built-in synthetic data generator for testing
 - 📈 **Comprehensive Evaluation**: Detailed metrics (RMSE, MAE, R²) and visualizations
 - 🛠️ **Modular Design**: Easy to extend and customize
+- 🎯 **Multi-task Learning**: Predict both compressive and tensile strength simultaneously
+- 📋 **Real Data Support**: Load actual concrete mix design datasets
 
 ## Project Structure
 
@@ -46,46 +48,70 @@ git clone https://github.com/KurtSoncco/llm_concrete.git
 cd llm_concrete
 ```
 
-2. Create a virtual environment (recommended):
+2. Install uv (if not already installed):
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# Or on Windows: powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
 3. Install dependencies:
+```bash
+uv sync
+```
+
+Alternatively, for development:
+```bash
+uv sync --extra dev
+```
+
+### Why uv?
+
+This project uses [uv](https://github.com/astral-sh/uv) for fast, reliable Python package management. uv is significantly faster than pip and provides better dependency resolution. If you prefer pip, you can still use `requirements.txt`:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 ## Quick Start
 
-### Run Complete Pipeline
+### Run Complete Pipeline (Multi-task)
 
-Run the entire pipeline including ML models, LLM fine-tuning, and comparison:
+Run the entire pipeline including ML models, LLM fine-tuning, and comparison for both compression and tensile strength:
 
 ```bash
-python scripts/run_pipeline.py
+uv run python scripts/run_pipeline.py --multitask
 ```
 
 With custom options:
 ```bash
-python scripts/run_pipeline.py \
+uv run python scripts/run_pipeline.py \
+    --multitask \
     --llm-model TinyLlama/TinyLlama-1.1B-Chat-v1.0 \
     --epochs 3 \
     --batch-size 4 \
     --output-dir ./results
 ```
 
+### Train Multi-task LLM Only
+
+```bash
+uv run python scripts/train_multitask_llm.py \
+    --compression-path data/Data_Compresion_Concreto.csv \
+    --tensile-path data/Data_Traccion_Concreto.csv \
+    --epochs 3 \
+    --output-dir ./models/multitask_llm
+```
+
 ### Train Only ML Models
 
 ```bash
-python scripts/train_ml_models.py --output-dir ./models/ml_models
+uv run python scripts/train_ml_models.py --output-dir ./models/ml_models
 ```
 
 ### Train Only LLM
 
 ```bash
-python scripts/train_llm.py \
+uv run python scripts/train_llm.py \
     --model-name TinyLlama/TinyLlama-1.1B-Chat-v1.0 \
     --epochs 3 \
     --output-dir ./models/llm_model
@@ -93,19 +119,22 @@ python scripts/train_llm.py \
 
 ## Usage Examples
 
-### Using the Data Module
+### Using Multi-task Data Module
 
 ```python
 from src.data import load_concrete_data
 
-# Load synthetic data
-dataset = load_concrete_data()
+# Load both compression and tensile data
+dataset = load_concrete_data(
+    compression_path='data/Data_Compresion_Concreto.csv',
+    tensile_path='data/Data_Traccion_Concreto.csv'
+)
 
-# Prepare train/test split
-X_train, X_test, y_train, y_test = dataset.prepare_train_test_split()
+# Prepare train/val/test split (70/15/15)
+X_train, X_val, X_test, y_train, y_val, y_test = dataset.prepare_train_val_test_split()
 
-# Prepare data for LLM fine-tuning
-llm_data = dataset.prepare_llm_dataset()
+# Prepare data for multi-task LLM fine-tuning
+llm_data = dataset.prepare_multitask_llm_dataset()
 ```
 
 ### Training Traditional ML Models
@@ -121,10 +150,11 @@ ml_models, results = train_traditional_models(
 ml_models.save_models('./models/ml_models')
 ```
 
-### Fine-Tuning LLM
+### Multi-task LLM Fine-Tuning
 
 ```python
 from src.training import LLMFineTuner
+from src.evaluation import MultiTaskMetrics
 
 # Initialize trainer
 llm_trainer = LLMFineTuner(
@@ -132,46 +162,65 @@ llm_trainer = LLMFineTuner(
     use_lora=True
 )
 
-# Prepare dataset
+# Prepare multi-task dataset
 train_dataset = llm_trainer.prepare_dataset(llm_train_data)
+val_dataset = llm_trainer.prepare_dataset(llm_val_data)
 
 # Train
 llm_trainer.train(
     train_dataset=train_dataset,
-    output_dir='./models/llm_model',
+    eval_dataset=val_dataset,
+    output_dir='./models/multitask_llm',
     num_epochs=3
+)
+
+# Evaluate multi-task model
+metrics_calculator = MultiTaskMetrics()
+results = metrics_calculator.evaluate_multitask_llm(
+    llm_trainer, X_test, y_test, dataset.feature_columns
 )
 ```
 
-### Making Predictions
+### Making Multi-task Predictions
 
 ```python
-# With LLM
-instruction = "Given the following concrete mix design parameters, predict the compressive strength in MPa."
-input_text = "Cement: 540.0 kg/m³, Blast Furnace Slag: 0.0 kg/m³, ..."
-response = llm_trainer.predict(instruction, input_text)
+# Compression strength prediction
+compression_instruction = "Given the following concrete mix design parameters, predict the compressive strength in MPa."
+input_text = "Water: 150.0 kg/m³, Cement: 350.0 kg/m³, Aggregates: 1200.0 kg/m³, Age: 28 days"
+compression_response = llm_trainer.predict(compression_instruction, input_text)
 
-# With ML model
-predictions = ml_models.predict(X_test, model_name='random_forest')
+# Tensile strength prediction
+tensile_instruction = "Given the following concrete mix design parameters, predict the tensile strength in MPa."
+tensile_response = llm_trainer.predict(tensile_instruction, input_text)
+
+print(f"Compression: {compression_response}")
+print(f"Tensile: {tensile_response}")
 ```
 
 ## Dataset
 
-The project includes a synthetic data generator that creates realistic concrete mix design data based on typical ranges:
+The project supports both real concrete data and synthetic data generation:
+
+### Real Data
+- **Compression Data**: `data/Data_Compresion_Concreto.csv` (212 samples)
+- **Tensile Data**: `data/Data_Traccion_Concreto.csv` (79 samples)
+
+### Synthetic Data Generator
+Creates realistic concrete mix design data based on typical ranges:
 
 - **Input Features**:
-  - Cement (kg/m³)
-  - Blast Furnace Slag (kg/m³)
-  - Fly Ash (kg/m³)
   - Water (kg/m³)
+  - Cement (kg/m³)
+  - Aggregates (kg/m³)
   - Superplasticizer (kg/m³)
-  - Coarse Aggregate (kg/m³)
-  - Fine Aggregate (kg/m³)
   - Age (days)
+  - Factor (kg/m³)
 
-- **Target**: Compressive Strength (MPa)
+- **Targets**: 
+  - Compressive Strength (MPa)
+  - Tensile Strength (MPa)
 
-You can also use your own CSV data by passing `--data-path` to the scripts.
+You can also use your own CSV data by passing `--compression-path` and `--tensile-path` to the scripts.
 
 ## Models
 
@@ -192,13 +241,19 @@ You can also use your own CSV data by passing `--data-path` to the scripts.
 ## Evaluation Metrics
 
 All models are evaluated using:
+- **MSE** (Mean Squared Error): Lower is better
+- **MAE** (Mean Absolute Error): Lower is better  
 - **RMSE** (Root Mean Squared Error): Lower is better
-- **MAE** (Mean Absolute Error): Lower is better
 - **R²** (R-squared): Higher is better (max 1.0)
 
+For multi-task learning, metrics are computed separately for each task:
+- Compression strength prediction metrics
+- Tensile strength prediction metrics
+
 Results include:
-- Comparison table (`model_comparison.csv`)
-- Metrics visualization (`comparison_metrics.png`)
+- Comparison table (`multitask_comparison.csv`)
+- Task-specific metrics (`compression_metrics.csv`, `tensile_metrics.csv`)
+- Metrics visualization (`multitask_comparison.png`)
 - Predictions vs actual plots (`predictions_vs_actual.png`)
 
 ## Requirements

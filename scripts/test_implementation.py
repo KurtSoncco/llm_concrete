@@ -23,7 +23,7 @@ def test_imports():
             print("  ✓ LLM module imported successfully")
         except ImportError as e:
             print(f"  ⚠ LLM module requires torch/transformers: {e}")
-            print("    Install with: pip install torch transformers peft")
+            print("    Install with: uv sync")
         
         return True
     except Exception as e:
@@ -103,7 +103,7 @@ def test_llm_setup():
             import transformers
         except ImportError as e:
             print(f"  ⚠ LLM dependencies not installed: {e}")
-            print("    Install with: pip install torch transformers peft accelerate")
+            print("    Install with: uv sync")
             print("  ℹ Skipping LLM test (not required for ML-only usage)")
             return True
         

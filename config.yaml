@@ -7,18 +7,27 @@ project:
 
 # Data configuration
 data:
+  compression_file: "data/Data_Compresion_Concreto.csv"
+  tensile_file: "data/Data_Traccion_Concreto.csv"
   synthetic_samples: 1030
-  test_size: 0.2
+  train_split: 0.7
+  val_split: 0.15
+  test_split: 0.15
   random_state: 42
   feature_columns:
-    - cement
-    - blast_furnace_slag
-    - fly_ash
     - water
+    - cement
+    - aggregates
     - superplasticizer
-    - coarse_aggregate
-    - fine_aggregate
     - age
+    - factor
+
+# Multi-task configuration
+multitask:
+  tasks: ["compression", "tensile"]
+  task_weights: [1.0, 1.0]  # Equal weighting
+  compression_instruction: "Given the following concrete mix design parameters, predict the compressive strength in MPa."
+  tensile_instruction: "Given the following concrete mix design parameters, predict the tensile strength in MPa."
 
 # Traditional ML models configuration
 ml_models:
@@ -41,7 +50,15 @@ ml_models:
 
 # LLM configuration
 llm:
+  # Default small model (fast, low memory)
   model_name: "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+  
+  # Alternative larger models (uncomment to use):
+  # model_name: "microsoft/DialoGPT-medium"  # 345M parameters
+  # model_name: "microsoft/DialoGPT-large"   # 774M parameters
+  # model_name: "meta-llama/Llama-2-7b-chat-hf"  # 7B parameters (requires approval)
+  # model_name: "mistralai/Mistral-7B-Instruct-v0.1"  # 7B parameters
+  
   use_lora: true
   lora:
     r: 8
@@ -66,8 +83,9 @@ llm:
 # Evaluation configuration
 evaluation:
   metrics:
-    - rmse
+    - mse
     - mae
+    - rmse
     - r2
   
   visualization:

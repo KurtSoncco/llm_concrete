@@ -131,7 +131,7 @@ try:
     )
     
 except ImportError:
-    print("LLM training requires: pip install torch transformers peft accelerate")
+    print("LLM training requires: uv sync")
 
 
 # ==============================================================================
@@ -156,7 +156,7 @@ try:
     print(f"LLM Response: {response}")
     
 except ImportError:
-    print("LLM inference requires: pip install torch transformers peft")
+    print("LLM inference requires: uv sync")
 
 
 # ==============================================================================
